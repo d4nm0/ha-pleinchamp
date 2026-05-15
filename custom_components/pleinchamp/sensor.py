@@ -1,79 +1,74 @@
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import (
+    SensorEntity, 
+    SensorDeviceClass, 
+    SensorStateClass
+)
 from .const import DOMAIN
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    """Configuration des entités sensor à partir d'une entrée de configuration."""
+    """Configuration des capteurs à partir d'une entrée de configuration."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
-
-    # On passe entry.entry_id à chaque capteur pour le unique_id et le device_info
-    entities = [
-        PleinchampSensor(coordinator, "Condition", "condition", None, "mdi:weather-cloudy", entry.entry_id),
-        PleinchampSensor(coordinator, "Température", "temp", "°C", "mdi:thermometer", entry.entry_id),
-        PleinchampSensor(coordinator, "Précipitations", "precip", "mm", "mdi:weather-pour", entry.entry_id),
-        PleinchampSensor(coordinator, "Température Min", "temp_min", "°C", "mdi:thermometer-chevron-down", entry.entry_id),
-        PleinchampSensor(coordinator, "Température Max", "temp_max", "°C", "mdi:thermometer-chevron-up", entry.entry_id),
-        PleinchampSensor(coordinator, "Vitesse du vent", "wind_speed", "km/h", "mdi:weather-windy", entry.entry_id),
-        PleinchampSensor(coordinator, "Humidité", "humidity", "%", "mdi:water-percent", entry.entry_id),
-        PleinchampSensor(coordinator, "Direction du vent", "wind_dir", None, "mdi:compass-outline", entry.entry_id),
+    unique_id = entry.entry_id
+    
+    # Liste des capteurs à créer
+    sensors = [
+        PleinchampSensor(coordinator, "Temperature", "temp", "°C", "mdi:thermometer", SensorDeviceClass.TEMPERATURE, unique_id),
+        PleinchampSensor(coordinator, "Condition", "condition", None, "mdi:weather-cloudy", None, unique_id),
+        PleinchampSensor(coordinator, "Precipitations", "precip", "mm", "mdi:weather-rainy", SensorDeviceClass.PRECIPITATION, unique_id),
+        PleinchampSensor(coordinator, "Humidite", "humidity", "%", "mdi:water-percent", SensorDeviceClass.HUMIDITY, unique_id),
+        PleinchampSensor(coordinator, "Vent Vitesse", "wind_speed", "km/h", "mdi:wind", SensorDeviceClass.WIND_SPEED, unique_id),
+        PleinchampSensor(coordinator, "Vent Direction", "wind_dir", None, "mdi:compass", None, unique_id),
+        PleinchampSensor(coordinator, "Temp au sol", "temp_au_sol", "°C", "mdi:snowflake", SensorDeviceClass.TEMPERATURE, unique_id),
     ]
     
-    async_add_entities(entities)
+    async_add_entities(sensors)
 
 class PleinchampSensor(SensorEntity):
     """Représentation d'un capteur Pleinchamp."""
 
-    def __init__(self, coordinator, name, data_key, unit, icon, entry_id):
+    def __init__(self, coordinator, name, data_key, unit, icon, device_class, entry_id):
         """Initialisation du capteur."""
         self.coordinator = coordinator
-        self._name = f"Pleinchamp {name}"
         self._data_key = data_key
-        self._unit = unit
-        self._icon = icon
-        self._entry_id = entry_id
-
-    @property
-    def unique_id(self):
-        """Identifiant unique pour que HA puisse gérer l'entité via l'UI."""
-        # Cet ID permet de ne plus avoir le message d'erreur jaune
-        return f"{self._entry_id}_{self._data_key}"
-
-    @property
-    def name(self):
-        """Retourne le nom du capteur."""
-        return self._name
+        
+        # Identification unique de l'entité
+        self._attr_name = f"Pleinchamp {name}"
+        self._attr_unique_id = f"pleinchamp_{entry_id}_{data_key}"
+        self._attr_native_unit_of_measurement = unit
+        self._attr_icon = icon
+        self._attr_device_class = device_class
+        
+        # Pour avoir des statistiques (graphiques) dans HA
+        if device_class in [SensorDeviceClass.TEMPERATURE, SensorDeviceClass.HUMIDITY, SensorDeviceClass.WIND_SPEED]:
+            self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def native_value(self):
-        """Retourne la valeur actuelle du capteur depuis le coordinator."""
+        """Retourne la valeur actuelle depuis le coordinateur."""
         return self.coordinator.data.get(self._data_key)
 
     @property
-    def native_unit_of_measurement(self):
-        """Retourne l'unité de mesure."""
-        return self._unit
-
-    @property
-    def icon(self):
-        """Retourne l'icône mdi."""
-        return self._icon
-
-    @property
-    def device_info(self):
-        """Lie tous les capteurs à un seul 'appareil' Pleinchamp dans l'UI."""
-        return {
-            "identifiers": {("pleinchamp", self._entry_id)},
-            "name": "Météo Pleinchamp",
-            "manufacturer": "Pleinchamp",
-            "entry_type": "service",
-        }
+    def available(self):
+        """Retourne si le capteur est disponible."""
+        return self.coordinator.last_update_success
 
     @property
     def should_poll(self):
-        """Pas besoin de poll, le coordinator s'en charge."""
+        """Pas de rafraîchissement manuel, le coordinateur s'en occupe."""
         return False
 
+    @property
+    def device_info(self):
+        """Lie l'entité à un appareil unique dans HA."""
+        return {
+            "identifiers": {(DOMAIN, self.coordinator.config_entry.entry_id)},
+            "name": "Météo Pleinchamp",
+            "manufacturer": "Pleinchamp",
+            "model": "API Production",
+        }
+
     async def async_added_to_hass(self):
-        """S'abonne aux mises à jour du coordinator."""
+        """S'abonne aux mises à jour du coordinateur."""
         self.async_on_remove(
             self.coordinator.async_add_listener(self.async_write_ha_state)
         )
