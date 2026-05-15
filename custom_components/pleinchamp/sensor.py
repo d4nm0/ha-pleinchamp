@@ -15,6 +15,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
         PleinchampSensor(coordinator, "Temperature", "temp", "°C", "mdi:thermometer", SensorDeviceClass.TEMPERATURE, unique_id),
         PleinchampSensor(coordinator, "Condition", "condition", None, "mdi:weather-cloudy", None, unique_id),
         PleinchampSensor(coordinator, "Precipitations", "precip", "mm", "mdi:weather-rainy", SensorDeviceClass.PRECIPITATION, unique_id),
+        # Nouveaux capteurs
+        PleinchampSensor(coordinator, "Pluie 24h", "precip_24h", "mm", "mdi:weather-pouring", SensorDeviceClass.PRECIPITATION, unique_id),
+        PleinchampSensor(coordinator, "Risque de pluie", "prob_max", "%", "mdi:water-percent", None, unique_id),
+        
         PleinchampSensor(coordinator, "Humidite", "humidity", "%", "mdi:water-percent", SensorDeviceClass.HUMIDITY, unique_id),
         PleinchampSensor(coordinator, "Vent Vitesse", "wind_speed", "km/h", "mdi:wind", SensorDeviceClass.WIND_SPEED, unique_id),
         PleinchampSensor(coordinator, "Vent Direction", "wind_dir", None, "mdi:compass", None, unique_id),
