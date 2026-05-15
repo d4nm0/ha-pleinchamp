@@ -1,38 +1,57 @@
-# Pleinchamp Météo pour Home Assistant 🌦️
+# 🌦️ Pleinchamp Météo pour Home Assistant
 
-Cette intégration personnalisée permet de récupérer les données météo détaillées du site [Pleinchamp](https://www.pleinchamp.com/), particulièrement utile pour le suivi agricole en France.
+Une intégration personnalisée pour **Home Assistant** qui récupère les données météo ultra-locales et agricoles directement depuis l'API de production de **Pleinchamp**.
 
-## Caractéristiques
-L'intégration récupère les informations suivantes pour votre commune :
-- 🌡️ Température actuelle
-- 🌥️ État du ciel (Condition)
-- 🌧️ Précipitations (en mm)
-- 📉 Températures Minimales et Maximales
-- 💨 Vitesse et Direction du vent
-- 💧 Taux d'humidité
+Contrairement aux anciennes méthodes basées sur le web scraping, cette version utilise l'API native (JSON) pour une fiabilité maximale et des données précises.
 
-## Installation
+## ✨ Caractéristiques
 
-### Via HACS (Recommandé)
-1. Ouvrez **HACS** dans votre instance Home Assistant.
-2. Cliquez sur les trois points en haut à droite et choisissez **Dépôts personnalisés**.
-3. Ajoutez l'URL de ce dépôt GitHub et sélectionnez la catégorie **Intégration**.
-4. Recherchez "Pleinchamp Météo" et cliquez sur **Télécharger**.
-5. Redémarrez Home Assistant.
+* **Zéro Scraping** : Utilise l'API de production officielle (`api.prod.pleinchamp.com`).
+* **Localisation précise** : Configuration simplifiée par **Latitude** et **Longitude**.
+* **Capteurs Agricoles** : Inclut la température au sol (idéal pour la surveillance du gel).
+* **Prévisions Avancées** :
+    * **Pluie sur 24h** : Calcul du cumul total prévu sur les prochaines 24 heures.
+    * **Risque de pluie** : Probabilité maximale de précipitations sur la journée.
+* **Identifiants uniques** : Toutes les entités sont gérables via l'interface utilisateur de Home Assistant (nom, icône, zone).
 
-### Installation Manuelle
-1. Téléchargez le dossier `pleinchamp` situé dans `custom_components`.
-2. Copiez-le dans le dossier `config/custom_components/` de votre instance Home Assistant.
-3. Redémarrez Home Assistant.
+## 📊 Capteurs disponibles
 
-## Configuration
+| Capteur | Description | Unité |
+| :--- | :--- | :--- |
+| **Température** | Température actuelle de l'air | °C |
+| **Condition** | État du ciel (Ensoleillé, Pluie, etc.) | - |
+| **Précipitations** | Quantité de pluie immédiate (tranche actuelle) | mm |
+| **Pluie 24h** | Cumul des précipitations prévu sur les 24 prochaines heures | mm |
+| **Risque de pluie** | Probabilité maximale de pluie sur la journée | % |
+| **Humidité** | Taux d'humidité relative | % |
+| **Vent Vitesse** | Vitesse du vent actuelle | km/h |
+| **Vent Direction** | Direction cardinale (ex: NE, SO, NO) | - |
+| **Temp au sol** | Température proche du sol (mesure spécifique) | °C |
+
+## 🚀 Installation
+
+### Méthode Manuelle
+1. Téléchargez les fichiers de l'intégration.
+2. Copiez le dossier `pleinchamp` dans votre répertoire `custom_components/` de Home Assistant.
+   * Structure attendue : `/config/custom_components/pleinchamp/`
+3. Redémarrez Home Assistant pour que l'intégration soit détectée.
+
+## ⚙️ Configuration
+
 1. Allez dans **Paramètres** > **Appareils et services**.
-2. Cliquez sur **Ajouter une intégration**.
-3. Cherchez **Pleinchamp Météo**.
-4. Entrez l'URL Pleinchamp de votre ville (ex: `https://www.pleinchamp.com/meteo/45700-pannes`).
+2. Cliquez sur **Ajouter une intégration** en bas à droite.
+3. Recherchez **Pleinchamp Météo API**.
+4. Saisissez les coordonnées GPS souhaitées :
+   * **Latitude** (ex: `48.004732`)
+   * **Longitude** (ex: `2.675917`)
+5. Validez. Toutes vos entités seront automatiquement créées et regroupées sous l'appareil **Météo Pleinchamp**.
 
-## Mise à jour des données
-Par défaut, l'intégration vérifie les données toutes les 30 minutes pour respecter les serveurs de Pleinchamp.
+## 🛠️ Détails Techniques (Calculs)
+
+* **Pluie 24h** : Somme des 8 prochaines tranches de 3 heures fournies par l'API.
+* **Risque de pluie** : Valeur maximale (`max`) des probabilités de précipitations sur les 8 prochaines tranches.
+* **Mise à jour** : Les données sont rafraîchies toutes les 15 minutes (configurable dans `const.py`).
 
 ---
-*Note : Cette intégration utilise le scraping pour récupérer les données. Elle n'est pas affiliée officiellement à Pleinchamp.*
+
+**Note** : Cette intégration est un projet communautaire non-affilié officiellement à Pleinchamp.
