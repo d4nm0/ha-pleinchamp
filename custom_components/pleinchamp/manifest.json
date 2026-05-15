@@ -1,0 +1,11 @@
+{
+  "domain": "pleinchamp",
+  "name": "Pleinchamp Météo",
+  "codeowners": ["@d4nm0"],
+  "dependencies": [],
+  "documentation": "https://github.com/d4nm0/ha-pleinchamp",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/d4nm0/ha-pleinchamp/issues",
+  "requirements": ["beautifulsoup4==4.12.2"],
+  "version": "1.0.0"
+}
