@@ -25,25 +25,31 @@ async def async_setup_entry(hass: HomeAssistant, entry):
                 response.raise_for_status()
                 json_data = await response.json()
 
-                def get_val(key):
+                # Extraction des données
+                def get_val(key, index=0):
                     metric = json_data.get(key, [])
-                    return metric[0].get("value") if metric else None
+                    return metric[index].get("value") if len(metric) > index else 0
+
+                # Calcul Pluie sur 24h (somme des 8 prochaines tranches de 3h)
+                precip_24h = sum([get_val("precipitationAmount", i) for i in range(8)])
+                
+                # Risque de pluie max sur les 8 prochaines tranches
+                prob_max = max([get_val("precipitationProbability", i) for i in range(8)])
 
                 weather_code = get_val("weatherCode")
                 wind_dir = get_val("windDirection")
-                
-                # Petit dictionnaire de conditions
                 conditions = {2: "Ensoleillé", 3: "Peu nuageux", 15: "Pluie faible", 103: "Nuageux", 115: "Averses"}
 
                 return {
                     "temp": get_val("airTemperature"),
                     "condition": conditions.get(weather_code, f"Code {weather_code}"),
                     "precip": get_val("precipitationAmount"),
+                    "precip_24h": round(precip_24h, 2),
+                    "prob_max": prob_max,
                     "humidity": get_val("relativeHumidity"),
                     "wind_speed": get_val("windSpeedAt2m"),
                     "wind_dir": wind_dir.get("cardinal") if isinstance(wind_dir, dict) else "N/A",
-                    "temp_min": get_val("airTemperatureNearGround"),
-                    "temp_max": get_val("airTemperature"),
+                    "temp_au_sol": get_val("airTemperatureNearGround"),
                 }
         except Exception as err:
             raise UpdateFailed(f"Erreur API Pleinchamp: {err}")
