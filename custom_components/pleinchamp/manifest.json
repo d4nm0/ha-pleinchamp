@@ -1,6 +1,7 @@
 {
   "domain": "pleinchamp",
   "name": "Pleinchamp Météo",
+  "config_flow": true,
   "codeowners": ["@d4nm0"],
   "dependencies": [],
   "documentation": "https://github.com/d4nm0/ha-pleinchamp",
