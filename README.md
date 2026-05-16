@@ -27,6 +27,8 @@ Une intégration personnalisée pour **Home Assistant** qui récupère les donn�
 | **Vent** | km/h | Vitesse et direction (NO, SO, etc.) |
 | **Prévisions Temp** | °C | Série de données pour graphique (24h) |
 | **Prévisions Pluie** | mm | Série de données pour graphique (24h) |
+| **Previsions Rafales** | km/h | maximale sur la journée |
+| **Rafales Vent** | km/h | Rafale de vent à l'instant T |
 
 ## 🚀 Installation
 
