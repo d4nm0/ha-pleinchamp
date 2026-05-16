@@ -93,7 +93,95 @@ series:
         return [new Date(t).getTime(), entity.attributes.data[index]];
       });
     color: "#3498db"
+```
+
+## 📱 Interface Recommandée (Dashboard)
+
+Pour obtenir un affichage complet, vous pouvez combiner les cartes natives et **ApexCharts-card**.
+
+```yaml
+type: vertical-stack
+cards:
+  - type: custom:button-card
+    name: Météo Pleinchamp
+    label: >
+      [[[ return states['sensor.meteo_pleinchamp_pleinchamp_condition'].state +
+      ' • ' + states['sensor.meteo_pleinchamp_pleinchamp_temperature'].state +
+      '°C' ]]]
+    show_label: true
+    styles:
+      card:
+        - background: "linear-gradient(145deg, #2c3e50, #000000)"
+        - color: white
+        - padding: 10px
+      name:
+        - font-weight: bold
+        - font-size: 18px
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+      - type: entity
+        entity: sensor.meteo_pleinchamp_pleinchamp_temp_au_sol
+        name: Temp Sol
+      - type: entity
+        entity: sensor.meteo_pleinchamp_pleinchamp_pluie_24h
+        name: Pluie 24h
+      - type: entity
+        entity: sensor.meteo_pleinchamp_pleinchamp_risque_de_pluie
+        name: Risque
+  - type: custom:apexcharts-card
+    graph_span: 24h
+    span:
+      start: hour
+    header:
+      show: true
+      title: Température & Rafales (24h)
+    all_series_config:
+      stroke_width: 2
+    series:
+      - entity: sensor.meteo_pleinchamp_pleinchamp_previsions_temperature
+        name: Temp
+        type: area
+        color: "#e67e22"
+        opacity: 0.3
+        data_generator: |
+          return entity.attributes.timestamps.map((t, index) => {
+            return [new Date(t).getTime(), entity.attributes.data[index]];
+          });
+      - entity: sensor.meteo_pleinchamp_pleinchamp_previsions_rafales
+        name: Rafales
+        type: line
+        color: "#c0392b"
+        data_generator: |
+          return entity.attributes.timestamps.map((t, index) => {
+            return [new Date(t).getTime(), entity.attributes.data[index]];
+          });
+  - type: custom:apexcharts-card
+    graph_span: 24h
+    span:
+      start: hour
+    header:
+      show: true
+      title: Précipitations prévues
+    series:
+      - entity: sensor.meteo_pleinchamp_pleinchamp_previsions_pluie
+        type: column
+        color: "#3498db"
+        data_generator: |
+          return entity.attributes.timestamps.map((t, index) => {
+            return [new Date(t).getTime(), entity.attributes.data[index]];
+          });
+  - type: glance
+    entities:
+      - entity: sensor.meteo_pleinchamp_pleinchamp_vent_vitesse
+        name: Vent
+      - entity: sensor.meteo_pleinchamp_pleinchamp_vent_direction
+        name: Dir.
+      - entity: sensor.meteo_pleinchamp_pleinchamp_humidite
+        name: Humidité
 
 ```
+<img width="590" height="1392" alt="image" src="https://github.com/user-attachments/assets/bc7b95f1-0ebe-49a5-89e6-c148acaebdbf" />
 
 Note : Cette intégration est un projet communautaire non-affilié officiellement à Pleinchamp.
