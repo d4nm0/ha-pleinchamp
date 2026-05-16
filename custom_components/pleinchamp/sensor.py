@@ -15,20 +15,22 @@ async def async_setup_entry(hass, entry, async_add_entities):
     sensors.append(PleinchampSensor(coordinator, "Vent Vitesse", "wind_speed", "km/h", "mdi:wind", SensorDeviceClass.WIND_SPEED, uid))
     sensors.append(PleinchampSensor(coordinator, "Vent Direction", "wind_dir", None, "mdi:compass", None, uid))
     sensors.append(PleinchampSensor(coordinator, "Temp au sol", "temp_au_sol", "°C", "mdi:snowflake", SensorDeviceClass.TEMPERATURE, uid))
+    # --- AJOUT DES RAFALES ---
+    sensors.append(PleinchampSensor(coordinator, "Rafales Vent", "wind_gust", "km/h", "mdi:weather-windy-variant", SensorDeviceClass.WIND_SPEED, uid))
 
     # 2. Capteurs de Cumul / Max (24h)
     sensors.append(PleinchampSensor(coordinator, "Pluie 24h", "precip_24h", "mm", "mdi:weather-pouring", SensorDeviceClass.PRECIPITATION, uid))
     sensors.append(PleinchampSensor(coordinator, "Risque de pluie", "prob_max", "%", "mdi:water-percent", None, uid))
 
-    # 3. Capteurs de Prévisions (Tableaux de données pour graphiques)
-    # Ces capteurs n'ont pas de "valeur native" simple, ils servent à porter les attributs
+    # 3. Capteurs de Prévisions (Séries pour graphiques)
     sensors.append(PleinchampForecastSensor(coordinator, "Previsions Temperature", "forecast_temp", "°C", "mdi:chart-line", uid))
     sensors.append(PleinchampForecastSensor(coordinator, "Previsions Pluie", "forecast_precip", "mm", "mdi:chart-bell-curve", uid))
+    # --- AJOUT PRÉVISIONS RAFALES ---
+    sensors.append(PleinchampForecastSensor(coordinator, "Previsions Rafales", "forecast_gust", "km/h", "mdi:weather-windy", uid))
 
     async_add_entities(sensors)
 
 class PleinchampSensor(SensorEntity):
-    """Capteurs standards (Instantanés)."""
     def __init__(self, coordinator, name, data_key, unit, icon, device_class, entry_id):
         self.coordinator = coordinator
         self._data_key = data_key
@@ -43,13 +45,14 @@ class PleinchampSensor(SensorEntity):
     @property
     def native_value(self): return self.coordinator.data.get(self._data_key)
     @property
+    def device_info(self): return {"identifiers": {(DOMAIN, self.coordinator.config_entry.entry_id)}, "name": "Météo Pleinchamp"}
+    @property
     def available(self): return self.coordinator.last_update_success
     @property
-    def device_info(self): return {"identifiers": {(DOMAIN, self.coordinator.config_entry.entry_id)}, "name": "Météo Pleinchamp"}
+    def should_poll(self): return False
     async def async_added_to_hass(self): self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
 
 class PleinchampForecastSensor(SensorEntity):
-    """Capteurs de prévisions (Portent les attributs de série)."""
     def __init__(self, coordinator, name, data_key, unit, icon, entry_id):
         self.coordinator = coordinator
         self._data_key = data_key
@@ -60,7 +63,6 @@ class PleinchampForecastSensor(SensorEntity):
 
     @property
     def native_value(self):
-        # La valeur affichée est la moyenne ou la prochaine valeur
         series = self.coordinator.data.get(self._data_key, [])
         return series[0] if series else None
 
@@ -73,4 +75,6 @@ class PleinchampForecastSensor(SensorEntity):
 
     @property
     def device_info(self): return {"identifiers": {(DOMAIN, self.coordinator.config_entry.entry_id)}, "name": "Météo Pleinchamp"}
+    @property
+    def available(self): return self.coordinator.last_update_success
     async def async_added_to_hass(self): self.async_on_remove(self.coordinator.async_add_listener(self.async_write_ha_state))
