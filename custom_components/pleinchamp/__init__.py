@@ -10,9 +10,11 @@ from .const import DOMAIN, CONF_LATITUDE, CONF_LONGITUDE, DEFAULT_SCAN_INTERVAL,
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, entry):
+    """Configuration de l'intégration via l'API de production."""
     lat = entry.data[CONF_LATITUDE]
     lon = entry.data[CONF_LONGITUDE]
-    # Construction de l'URL d'API avec les coordonnées
+    
+    # URL de l'API avec les coordonnées dynamiques
     api_url = f"https://api.prod.pleinchamp.com/forecasts-36h?latitude={lat}&longitude={lon}&page=0"
     
     session = async_get_clientsession(hass)
@@ -25,47 +27,72 @@ async def async_setup_entry(hass: HomeAssistant, entry):
                 response.raise_for_status()
                 json_data = await response.json()
 
-                # Extraction des données
-                def get_val(key, index=0):
-                    metric = json_data.get(key, [])
-                    return metric[index].get("value") if len(metric) > index else 0
+                # --- FONCTIONS UTILITAIRES ---
+                def get_series(key, limit=8):
+                    """Récupère une liste de valeurs (par défaut les prochaines 24h / 8 tranches)."""
+                    series = json_data.get(key, [])
+                    return series[:limit]
 
-                # Calcul Pluie sur 24h (somme des 8 prochaines tranches de 3h)
-                precip_24h = sum([get_val("precipitationAmount", i) for i in range(8)])
+                def get_val(key):
+                    """Récupère la première valeur disponible (instant T)."""
+                    series = json_data.get(key, [])
+                    return series[0].get("value") if series else None
+
+                # --- MAPPING ET CALCULS ---
+                conditions_map = {2: "Ensoleillé", 3: "Peu nuageux", 15: "Pluie faible", 103: "Nuageux", 115: "Averses"}
                 
-                # Risque de pluie max sur les 8 prochaines tranches
-                prob_max = max([get_val("precipitationProbability", i) for i in range(8)])
+                # Récupération des séries pour les calculs (24h = 8 tranches de 3h)
+                precip_series = get_series("precipitationAmount")
+                prob_series = get_series("precipitationProbability")
 
-                weather_code = get_val("weatherCode")
-                wind_dir = get_val("windDirection")
-                conditions = {2: "Ensoleillé", 3: "Peu nuageux", 15: "Pluie faible", 103: "Nuageux", 115: "Averses"}
+                # Correction de l'erreur : Somme et Max via compréhension de liste
+                precip_24h = sum(item.get("value", 0) for item in precip_series)
+                prob_max = max((item.get("value", 0) for item in prob_series), default=0)
 
+                # --- PRÉPARATION DU DICTIONNAIRE DE DONNÉES ---
                 return {
+                    # Données Instant T
                     "temp": get_val("airTemperature"),
-                    "condition": conditions.get(weather_code, f"Code {weather_code}"),
+                    "condition": conditions_map.get(get_val("weatherCode"), f"Code {get_val('weatherCode')}"),
                     "precip": get_val("precipitationAmount"),
-                    "precip_24h": round(precip_24h, 2),
-                    "prob_max": prob_max,
                     "humidity": get_val("relativeHumidity"),
                     "wind_speed": get_val("windSpeedAt2m"),
-                    "wind_dir": wind_dir.get("cardinal") if isinstance(wind_dir, dict) else "N/A",
+                    "wind_dir": get_val("windDirection").get("cardinal") if isinstance(get_val("windDirection"), dict) else "N/A",
                     "temp_au_sol": get_val("airTemperatureNearGround"),
+                    
+                    # Totaux 24h
+                    "precip_24h": round(precip_24h, 2),
+                    "prob_max": prob_max,
+
+                    # Séries de prévisions (pour les capteurs Forecast / Graphiques)
+                    "forecast_temp": [item.get("value") for item in get_series("airTemperature")],
+                    "forecast_precip": [item.get("value") for item in get_series("precipitationAmount")],
+                    "forecast_prob": [item.get("value") for item in get_series("precipitationProbability")],
+                    "forecast_wind": [item.get("value") for item in get_series("windSpeedAt2m")],
+                    "timestamps": [item.get("date") for item in get_series("airTemperature")]
                 }
         except Exception as err:
-            raise UpdateFailed(f"Erreur API Pleinchamp: {err}")
+            _LOGGER.error("💥 Erreur lors de la mise à jour Pleinchamp : %s", err)
+            raise UpdateFailed(f"Erreur API: {err}")
 
+    # Gestionnaire de mise à jour (Coordinator)
     coordinator = DataUpdateCoordinator(
-        hass, _LOGGER, name="Pleinchamp API",
+        hass,
+        _LOGGER,
+        name="Pleinchamp API",
         update_method=async_update_data,
         update_interval=timedelta(minutes=DEFAULT_SCAN_INTERVAL),
     )
 
     await coordinator.async_config_entry_first_refresh()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+    
+    # Enregistrement de la plateforme sensor
     await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry):
+    """Déchargement de l'entrée de configuration."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, ["sensor"])
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
