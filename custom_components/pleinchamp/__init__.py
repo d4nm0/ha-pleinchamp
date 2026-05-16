@@ -39,7 +39,16 @@ async def async_setup_entry(hass: HomeAssistant, entry):
                     return series[0].get("value") if series else None
 
                 # --- MAPPING ET CALCULS ---
-                conditions_map = {2: "Ensoleillé", 3: "Peu nuageux", 15: "Pluie faible", 103: "Nuageux", 115: "Averses"}
+                conditions_map = {1: "Ensoleillé", 2: "Ensoleillé", 3: "Peu nuageux", 4: "Nuageux", 5: "Très nuageux", 6: "Couvert",
+7: "Brouillard", 8: "Ciel couvert / Pluie", 10: "Pluie faible", 11: "Pluie modérée", 12: "Pluie forte",
+13: "Pluie faible givrante", 14: "Pluie modérée givrante", 15: "Pluie faible",20: "Faibles averses",
+21: "Averses modérées", 22: "Fortes averses", 30: "Neige faible", 31: "Neige modérée", 32: "Neige forte",
+40: "Pluie et neige mêlées", 41: "Pluie et neige mêlées", 42: "Pluie et neige mêlées fortes", 60: "Faibles averses de neige",
+61: "Averses de neige modérées", 62: "Fortes averses de neige", 70: "Faibles averses de pluie et neige",
+71: "Averses de pluie et neige", 72: "Fortes averses de pluie et neige", 80: "Orage faible", 81: "Orage modéré",
+82: "Orage fort", 83: "Orage faible avec grêle", 84: "Orage modéré avec grêle", 85: "Orage fort avec grêle",
+101: "Nuit claire", 102: "Nuit claire", 103: "Nuageux", 104: "Nuageux", 105: "Très nuageux", 106: "Couvert",
+110: "Pluie faible", 111: "Pluie modérée", 112: "Pluie forte", 115: "Averses", 120: "Averses", 121: "Averses modérées", 180: "Orageux"}
                 
                 # Récupération des séries pour les calculs (24h = 8 tranches de 3h)
                 precip_series = get_series("precipitationAmount")
