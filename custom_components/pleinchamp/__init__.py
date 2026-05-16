@@ -63,6 +63,8 @@ async def async_setup_entry(hass: HomeAssistant, entry):
                     # Totaux 24h
                     "precip_24h": round(precip_24h, 2),
                     "prob_max": prob_max,
+                    "wind_gust": get_val("maxWindGustAt2m") or 0,
+                    "forecast_gust": [item.get("value", 0) for item in get_series("maxWindGustAt2m")],
 
                     # Séries de prévisions (pour les capteurs Forecast / Graphiques)
                     "forecast_temp": [item.get("value") for item in get_series("airTemperature")],
