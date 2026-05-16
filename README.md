@@ -59,21 +59,21 @@ span:
   start: hour
 header:
   show: true
-  title: Évolution Température (24h)
+  title: Prévisions Température (24h)
   show_states: true
 series:
-  - entity: sensor.pleinchamp_previsions_temperature
+  - entity: sensor.meteo_pleinchamp_pleinchamp_previsions_temperature
     data_generator: |
       return entity.attributes.timestamps.map((t, index) => {
         return [new Date(t).getTime(), entity.attributes.data[index]];
       });
     stroke_width: 3
     curve: smooth
-    color: '#e67e22'
+    color: "#e67e22"
 ```
 
 
-### 🌡️ Graphique de Température (24h)
+### 🌧️ Histogramme de Pluie (24h)
 ```yaml
 type: custom:apexcharts-card
 graph_span: 24h
@@ -81,16 +81,17 @@ span:
   start: hour
 header:
   show: true
-  title: Précipitations par tranche de 3h
+  title: Précipitations (3h)
   show_states: true
 series:
-  - entity: sensor.pleinchamp_previsions_pluie
+  - entity: sensor.meteo_pleinchamp_pleinchamp_previsions_pluie
     type: column
-    color: '#3498db'
     data_generator: |
       return entity.attributes.timestamps.map((t, index) => {
         return [new Date(t).getTime(), entity.attributes.data[index]];
       });
+    color: "#3498db"
+
 ```
 
 Note : Cette intégration est un projet communautaire non-affilié officiellement à Pleinchamp.
