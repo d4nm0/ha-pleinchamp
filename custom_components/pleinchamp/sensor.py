@@ -34,7 +34,7 @@ class PleinchampSensor(SensorEntity):
     def __init__(self, coordinator, name, data_key, unit, icon, device_class, entry_id):
         self.coordinator = coordinator
         self._data_key = data_key
-        self._attr_name = f"Pleinchamp {name}"
+        self._attr_name = name
         self._attr_unique_id = f"pleinchamp_{entry_id}_{data_key}"
         self._attr_native_unit_of_measurement = unit
         self._attr_icon = icon
@@ -56,7 +56,7 @@ class PleinchampForecastSensor(SensorEntity):
     def __init__(self, coordinator, name, data_key, unit, icon, entry_id):
         self.coordinator = coordinator
         self._data_key = data_key
-        self._attr_name = f"Pleinchamp {name}"
+        self._attr_name = name
         self._attr_unique_id = f"pleinchamp_{entry_id}_{data_key}"
         self._attr_native_unit_of_measurement = unit
         self._attr_icon = icon
