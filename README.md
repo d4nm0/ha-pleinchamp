@@ -105,9 +105,8 @@ cards:
   - type: custom:button-card
     name: Météo Pleinchamp
     label: >
-      [[[ return states['sensor.meteo_pleinchamp_pleinchamp_condition'].state +
-      ' • ' + states['sensor.meteo_pleinchamp_pleinchamp_temperature'].state +
-      '°C' ]]]
+      [[[ return states['sensor.meteo_pleinchamp_condition'].state + ' • ' +
+      states['sensor.meteo_pleinchamp_temperature'].state + '°C' ]]]
     show_label: true
     styles:
       card:
@@ -122,13 +121,13 @@ cards:
     square: false
     cards:
       - type: entity
-        entity: sensor.meteo_pleinchamp_pleinchamp_temp_au_sol
+        entity: sensor.meteo_pleinchamp_temp_au_sol
         name: Temp Sol
       - type: entity
-        entity: sensor.meteo_pleinchamp_pleinchamp_pluie_24h
+        entity: sensor.meteo_pleinchamp_pluie_24h
         name: Pluie 24h
       - type: entity
-        entity: sensor.meteo_pleinchamp_pleinchamp_risque_de_pluie
+        entity: sensor.meteo_pleinchamp_risque_de_pluie
         name: Risque
   - type: custom:apexcharts-card
     graph_span: 24h
@@ -140,7 +139,7 @@ cards:
     all_series_config:
       stroke_width: 2
     series:
-      - entity: sensor.meteo_pleinchamp_pleinchamp_previsions_temperature
+      - entity: sensor.meteo_pleinchamp_previsions_temperature
         name: Temp
         type: area
         color: "#e67e22"
@@ -149,7 +148,7 @@ cards:
           return entity.attributes.timestamps.map((t, index) => {
             return [new Date(t).getTime(), entity.attributes.data[index]];
           });
-      - entity: sensor.meteo_pleinchamp_pleinchamp_previsions_rafales
+      - entity: sensor.meteo_pleinchamp_previsions_rafales
         name: Rafales
         type: line
         color: "#c0392b"
@@ -165,7 +164,7 @@ cards:
       show: true
       title: Précipitations prévues
     series:
-      - entity: sensor.meteo_pleinchamp_pleinchamp_previsions_pluie
+      - entity: sensor.meteo_pleinchamp_previsions_pluie
         type: column
         color: "#3498db"
         data_generator: |
@@ -174,14 +173,16 @@ cards:
           });
   - type: glance
     entities:
-      - entity: sensor.meteo_pleinchamp_pleinchamp_vent_vitesse
+      - entity: sensor.meteo_pleinchamp_vent_vitesse
         name: Vent
-      - entity: sensor.meteo_pleinchamp_pleinchamp_vent_direction
+      - entity: sensor.meteo_pleinchamp_vent_direction
         name: Dir.
-      - entity: sensor.meteo_pleinchamp_pleinchamp_humidite
+      - entity: sensor.meteo_pleinchamp_humidite
         name: Humidité
 
+
 ```
-<img width="590" height="1392" alt="image" src="https://github.com/user-attachments/assets/bc7b95f1-0ebe-49a5-89e6-c148acaebdbf" />
+<img width="568" height="1387" alt="image" src="https://github.com/user-attachments/assets/9504f977-56e3-4126-880e-1db6df4ed52c" />
+
 
 Note : Cette intégration est un projet communautaire non-affilié officiellement à Pleinchamp.
